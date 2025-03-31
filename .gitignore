@@ -1,0 +1,7 @@
+*/**/__pycache__
+target/
+.vscode/
+src/test/solutions/
+src/test/testcases/
+src/test/expects/
+src/test/results.txt
