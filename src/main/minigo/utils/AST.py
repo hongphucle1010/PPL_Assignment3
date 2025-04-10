@@ -1,7 +1,7 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod, ABCMeta
 from dataclasses import dataclass
-from typing import List, Union
+from typing import List, Tuple, Union
 from Visitor import Visitor
 
 
