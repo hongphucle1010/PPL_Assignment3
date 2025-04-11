@@ -251,43 +251,50 @@ class StaticChecker(BaseVisitor, Utils):
             raise Redeclared(Variable(), ast.varName)
         if not self.haveNotGotEntireProgramTypes:
             # Check RHS
+            if isinstance(ast.varType, VoidType):
+                raise TypeMismatch(ast)
             if ast.varInit is not None:  # ← guard
                 # val = self.evaluate(ast.varInit, c)
                 rhs_type = self.visit(ast.varInit, c)
                 if rhs_type is None:
-                    return Symbol(ast.varName, self.visit(rhs_type, c), None)
+                    return Symbol(ast.varName, self.visit(ast.varType, c), None)
                 if isinstance(rhs_type, VoidType):
                     raise TypeMismatch(ast.varInit)
                 if ast.varType is None:
                     return Symbol(ast.varName, self.visit(rhs_type, c), None)
-                if type(rhs_type) != type(ast.varType):
+                varType = self.visit(ast.varType, c)
+                if type(rhs_type) != type(varType):
                     # TODO TypeMismatch
                     if isinstance(rhs_type, IntType) and isinstance(
-                        ast.varType, FloatType
+                        varType, FloatType
                     ):
                         # Implicit conversion
-                        return Symbol(ast.varName, self.visit(ast.varType, c), None)
+                        return Symbol(ast.varName, varType, None)
                     if isinstance(rhs_type, StructType) and isinstance(
-                        ast.varType, InterfaceType
+                        varType, InterfaceType
                     ):
                         # Implicit conversion
-                        return Symbol(ast.varName, self.visit(ast.varType, c), None)
+                        return Symbol(ast.varName, varType, None)
                     logging.debug(f"Type mismatch: {rhs_type} != {ast.varType}")
                     raise TypeMismatch(ast)
                 elif isinstance(rhs_type, ArrayType):
-                    if rhs_type.eleType != ast.varType.eleType:
+                    if type(rhs_type.eleType) != type(varType.eleType):
                         raise TypeMismatch(ast)
-                    if len(rhs_type.dimens) != len(ast.varType.dimens):
+                    if len(rhs_type.dimens) != len(varType.dimens):
                         raise TypeMismatch(ast)
                     for i in range(len(rhs_type.dimens)):
                         if self.evaluate(rhs_type.dimens[i], c) != self.evaluate(
-                            ast.varType.dimens[i], c
+                            varType.dimens[i], c
                         ):
                             raise TypeMismatch(ast)
                 elif isinstance(rhs_type, StructType):
-                    if rhs_type.name != ast.varType.name:
-                        raise TypeMismatch(ast)
-                return Symbol(ast.varName, self.visit(ast.varType, c), None)
+                    if isinstance(varType, InterfaceType):
+                        # Implicit conversion
+                        return Symbol(ast.varName, varType, None)
+                    if isinstance(varType, StructType):
+                        if rhs_type.name != varType.name:
+                            raise TypeMismatch(ast)
+                return Symbol(ast.varName, varType, None)
             else:
                 return Symbol(ast.varName, self.visit(ast.varType, c), None)
         return Symbol(ast.varName, ast.varType, None)
@@ -370,6 +377,8 @@ class StaticChecker(BaseVisitor, Utils):
                 struct = self.struct[ast.name] = ast
 
             self.global_envi[0].append(Symbol(ast.name, ast, None))
+        else:
+            struct = self.struct.get(ast.name)
             fields = []
             for field_name, field_type in ast.elements:
                 res = self.lookup(
@@ -383,7 +392,7 @@ class StaticChecker(BaseVisitor, Utils):
             struct.fields = fields
         return ast
 
-    def visitMethodDecl(self, ast: MethodDecl, c: List[List[Symbol]]) -> Symbol:
+    def visitMethodDecl(self, ast: MethodDecl, c: List[List[Symbol]]) -> Symbol:        
         logging.debug("=" * 40)
         logging.debug(f"Visiting MethodDecl: {ast.fun.name}")
 
@@ -588,7 +597,7 @@ class StaticChecker(BaseVisitor, Utils):
             raise TypeMismatch(ast)
         else:
             if isinstance(lhs, ArrayType) and isinstance(rhs, ArrayType):
-                if lhs.eleType != rhs.eleType:
+                if type(lhs.eleType) != type(rhs.eleType):
                     raise TypeMismatch(ast)
                 if len(lhs.dimens) != len(rhs.dimens):
                     raise TypeMismatch(ast)
@@ -666,7 +675,9 @@ class StaticChecker(BaseVisitor, Utils):
                 raise TypeMismatch(ast)
         elif ast.op in ["==", ">", "<", ">=", "<=", "!="]:
             if type(lhs) == type(rhs):
-                return BoolType()
+                if isinstance(lhs, (IntType, FloatType, StringType)):
+                    return BoolType()
+                raise TypeMismatch(ast)
             else:
                 logging.debug(f"Type mismatch in binary operation: {ast}")
                 raise TypeMismatch(ast)
@@ -793,7 +804,7 @@ class StaticChecker(BaseVisitor, Utils):
                 raise TypeMismatch(ast)
             accessIndex.append(type)
 
-        if len(array.dimens) < len(accessIndex):
+        if len(array.dimens) > len(accessIndex):
             return ArrayType(
                 array.dimens[len(accessIndex) :],
                 array.eleType,
@@ -842,6 +853,12 @@ class StaticChecker(BaseVisitor, Utils):
     def visitArrayLiteral(self, ast: ArrayLiteral, c):
         logging.debug("=" * 40)
         logging.debug("Visiting ArrayLiteral")
+        dimens = []
+        for dim in ast.dimens:
+            type = self.visit(dim, c)
+            if not isinstance(type, IntType):
+                raise TypeMismatch(ast)
+            dimens.append(type)
         return ArrayType(ast.dimens, ast.eleType)
 
     def visitStructLiteral(self, ast: StructLiteral, c):
