@@ -854,4 +854,4 @@ class StaticChecker(BaseVisitor, Utils):
     def visitNilLiteral(self, ast: NilLiteral, c):
         logging.debug("=" * 40)
         logging.debug("Visiting NilLiteral")
-        return None
+        return StructType("Nil", [], [])  
