@@ -47,10 +47,10 @@ class Symbol:
 class StaticChecker(BaseVisitor, Utils):
 
     def __init__(self, ast):
-        logging.basicConfig(
-            level=logging.DEBUG,
-            format="%(relativeCreated)dms - %(levelname)s - %(message)s",
-        )
+        # logging.basicConfig(
+        #     level=logging.DEBUG,
+        #     format="%(relativeCreated)dms - %(levelname)s - %(message)s",
+        # )
 
         self.haveNotGotEntireProgramTypes = (
             True  # This is used to check if scan for the first or second time
