@@ -661,7 +661,7 @@ class CheckSuite(unittest.TestCase):
                 )
             ]
         )
-        expect = "Type Mismatch: Assign(Id(x),IntLiteral(1))\n"
+        expect = "Type Mismatch: VarDecl(x,VoidType)\n"
         self.assertTrue(TestChecker.test(input, expect, 433))
 
     def test_434(self):
