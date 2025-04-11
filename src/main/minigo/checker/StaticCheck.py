@@ -257,7 +257,7 @@ class StaticChecker(BaseVisitor, Utils):
                 if rhs_type is None:
                     return Symbol(ast.varName, self.visit(rhs_type, c), None)
                 if isinstance(rhs_type, VoidType):
-                    raise TypeMismatch(ast)
+                    raise TypeMismatch(ast.varInit)
                 if ast.varType is None:
                     return Symbol(ast.varName, self.visit(rhs_type, c), None)
                 if type(rhs_type) != type(ast.varType):
@@ -575,10 +575,10 @@ class StaticChecker(BaseVisitor, Utils):
 
         if isinstance(lhs, VoidType):
             logging.debug(f"Type mismatch in assignment: {ast}")
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.lhs)
 
         if isinstance(rhs, VoidType):
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.rhs)
 
         if type(lhs) != type(rhs):
             if isinstance(lhs, FloatType) and isinstance(rhs, IntType):
@@ -615,7 +615,7 @@ class StaticChecker(BaseVisitor, Utils):
         expr: Type = self.visit(ast.expr, c) if ast.expr else VoidType()
         if ast.expr is not None and isinstance(expr, VoidType):
             logging.debug(f"Type mismatch in return statement: {ast}")
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.expr)
 
         if type(expr) != type(self.function_current.retType):
             raise TypeMismatch(ast)
@@ -627,10 +627,10 @@ class StaticChecker(BaseVisitor, Utils):
 
         lhs = self.visit(ast.left, c)
         if isinstance(lhs, VoidType):
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.left)
         rhs = self.visit(ast.right, c)
         if isinstance(rhs, VoidType):
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.right)
 
         if ast.op == "+":
             if isinstance(lhs, IntType) and isinstance(rhs, IntType):
@@ -683,7 +683,7 @@ class StaticChecker(BaseVisitor, Utils):
         logging.debug(f"Visiting UnaryOp: {ast.op}")
         body = self.visit(ast.body, c)
         if isinstance(body, VoidType):
-            raise TypeMismatch(ast)
+            raise TypeMismatch(ast.body)
         if ast.op == "-":
             if isinstance(body, (IntType, FloatType)):
                 return body
