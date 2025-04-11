@@ -73,7 +73,6 @@ def main(argv):
                 all_tests = list(
                     unittest.TestLoader().loadTestsFromTestCase(CheckSuite)
                 )
-                print(len(all_tests))
                 selected_tests = all_tests[
                     start - 400 : end - 399
                 ]  # Adjust based on your numbering
