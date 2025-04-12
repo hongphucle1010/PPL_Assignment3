@@ -206,6 +206,9 @@ class StaticChecker(BaseVisitor, Utils):
         logging.debug("=" * 40)
         logging.debug("Visiting Program")
         # First loop: Check redeclare
+
+        # print("First loop: ", [[symbol.name for symbol in scope] for scope in c])
+
         tmp_c = c
         for decl in ast.decl:
             if isinstance(decl, (StructType, InterfaceType)):
@@ -220,6 +223,7 @@ class StaticChecker(BaseVisitor, Utils):
         logging.debug("Enabling second pass")
 
         # Second loop: Check Struct field / Interface prototype decls, RHS, Func/Method params, and body
+        # print("Second loop: ", [[symbol.name for symbol in scope] for scope in tmp_c])
         tmp_c = c
         for decl in ast.decl:
             if isinstance(decl, (StructType, InterfaceType)):
@@ -265,9 +269,7 @@ class StaticChecker(BaseVisitor, Utils):
                 varType = self.visit(ast.varType, c)
                 if type(rhs_type) != type(varType):
                     # TODO TypeMismatch
-                    if isinstance(rhs_type, IntType) and isinstance(
-                        varType, FloatType
-                    ):
+                    if isinstance(rhs_type, IntType) and isinstance(varType, FloatType):
                         # Implicit conversion
                         return Symbol(ast.varName, varType, None)
                     if isinstance(rhs_type, StructType) and isinstance(
@@ -392,7 +394,7 @@ class StaticChecker(BaseVisitor, Utils):
             struct.fields = fields
         return ast
 
-    def visitMethodDecl(self, ast: MethodDecl, c: List[List[Symbol]]) -> Symbol:        
+    def visitMethodDecl(self, ast: MethodDecl, c: List[List[Symbol]]) -> Symbol:
         logging.debug("=" * 40)
         logging.debug(f"Visiting MethodDecl: {ast.fun.name}")
 
@@ -518,14 +520,18 @@ class StaticChecker(BaseVisitor, Utils):
         logging.debug("=" * 40)
         logging.debug(f"Visiting ForEach: {ast.idx.name}")
 
-        idx = self.visit(ast.idx, c)
-        if not isinstance(idx, IntType):
+        no_index = False
+
+        if isinstance(ast.idx, Id) and ast.idx.name == "_":
+            no_index = True
+        idx = self.visit(ast.idx, c) if not no_index else None
+        if not isinstance(idx, IntType) and not no_index:
             raise TypeMismatch(ast)
         value = self.visit(ast.value, c)
         arr: Type = self.visit(ast.arr, c)
         if not isinstance(arr, ArrayType):
             raise TypeMismatch(ast)
-        if not isinstance(value, arr.eleType):
+        if type(value) != type(arr.eleType):
             raise TypeMismatch(ast)
         self.visit(ast.loop, c)
 
@@ -871,4 +877,4 @@ class StaticChecker(BaseVisitor, Utils):
     def visitNilLiteral(self, ast: NilLiteral, c):
         logging.debug("=" * 40)
         logging.debug("Visiting NilLiteral")
-        return StructType("Nil", [], [])  
+        return StructType("Nil", [], [])

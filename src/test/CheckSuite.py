@@ -2394,3 +2394,69 @@ class CheckSuite(unittest.TestCase):
         ])
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 500))
+
+    # ! ==== ADVANCED TEST CASES ==== !
+
+    def test_501(self):
+        """
+        var a int = a;
+        """
+        input = Program(
+            [VarDecl("a", IntType(), Id("a"))]
+        )
+        expect = "Undeclared Identifier: a\n"
+        self.assertTrue(TestChecker.test(input, expect, 501))
+        
+    def test_502(self):
+        """
+        Same name with built-in function
+        var getInt int;
+        """
+        input = Program(
+            [VarDecl("getInt", IntType(), None)]
+        )
+        expect = "Redeclared Variable: getInt\n"
+        self.assertTrue(TestChecker.test(input, expect, 502))
+        
+    def test_503(self):
+        input = """func main() { 
+            var data [10]string; for _, item := range data {
+              const MSG = "hello"; const MSG = "world"; }; }
+              """
+        expect = "Undeclared Identifier: item\n"
+        self.assertTrue(TestChecker.test(input, expect, 503))
+        
+    def test_504(self):
+        """
+        func main() {
+            var i int;
+            var s string;
+            for i, s := range [2]int{1, 2} {
+                return;
+            }
+        }
+        // ❌ s is string, but array elements are int
+        """
+        input = Program([
+            FuncDecl(
+                "main", [], VoidType(),
+                Block([
+                    VarDecl("i", IntType(), None),
+                    VarDecl("s", StringType(), None),
+                    ForEach(
+                        Id("i"),
+                        Id("s"),
+                        ArrayLiteral(
+                            [IntLiteral(2)],
+                            IntType(),
+                            [IntLiteral(1), IntLiteral(2)]
+                        ),
+                        Block([Return(None)])
+                    )
+                ])
+            )
+        ])
+        expect = "Type Mismatch: ForEach(Id(i),Id(s),ArrayLiteral([IntLiteral(2)],IntType,[IntLiteral(1),IntLiteral(2)]),Block([Return()]))\n"
+        self.assertTrue(TestChecker.test(input, expect, 504))
+        
+        
