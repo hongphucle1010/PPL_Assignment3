@@ -479,15 +479,14 @@ class CheckSuite(unittest.TestCase):
             func (a A) foo() {}
         }
         """
-        input = Program(
-            [
-                MethodDecl(
-                    "a", Id("A"), FuncDecl("foo", [], VoidType(), Block([Return(None)]))
-                ),
-                StructType("A", [("foo", IntType())], []),  # Field 'foo'
-            ]
-        )
-        expect = "Redeclared Field: foo\n"
+        input = Program([
+            MethodDecl(
+                "a", Id("A"),
+                FuncDecl("foo", [], VoidType(), Block([Return(None)]))
+            ),
+            StructType("A", [("foo", IntType())], [])  # Field 'foo'
+        ])
+        expect = "Redeclared Method: foo\n"
         self.assertTrue(TestChecker.test(input, expect, 425))
 
     # ! ===================== UNDECLARATION ===================== ! #
@@ -2081,16 +2080,21 @@ class CheckSuite(unittest.TestCase):
             }
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("x", IntType(), None),
-                    Block([
-                        VarDecl("x", StringType(), None)
-                    ])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("x", IntType(), None),
+                            Block([VarDecl("x", StringType(), None)]),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 488))
 
@@ -2105,18 +2109,21 @@ class CheckSuite(unittest.TestCase):
             }
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    Block([
-                        VarDecl("x", IntType(), None)
-                    ]),
-                    Block([
-                        VarDecl("x", FloatType(), None)
-                    ])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            Block([VarDecl("x", IntType(), None)]),
+                            Block([VarDecl("x", FloatType(), None)]),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 489))
 
@@ -2136,20 +2143,30 @@ class CheckSuite(unittest.TestCase):
             i.greet();  // ✅ valid
         }
         """
-        input = Program([
-            InterfaceType("I", [Prototype("greet", [], VoidType())]),
-            StructType("A", [], []),
-            MethodDecl("a", Id("A"),
-                FuncDecl("greet", [], VoidType(), Block([Return(None)]))),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("i", Id("I"), None),
-                    VarDecl("a", Id("A"), None),
-                    Assign(Id("i"), Id("a")),
-                    MethCall(Id("i"), "greet", [])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                InterfaceType("I", [Prototype("greet", [], VoidType())]),
+                StructType("A", [], []),
+                MethodDecl(
+                    "a",
+                    Id("A"),
+                    FuncDecl("greet", [], VoidType(), Block([Return(None)])),
+                ),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("i", Id("I"), None),
+                            VarDecl("a", Id("A"), None),
+                            Assign(Id("i"), Id("a")),
+                            MethCall(Id("i"), "greet", []),
+                        ]
+                    ),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 490))
 
@@ -2164,15 +2181,17 @@ class CheckSuite(unittest.TestCase):
             i := nil;  // ✅ nil can be assigned to interface
         }
         """
-        input = Program([
-            InterfaceType("I", [Prototype("greet", [], VoidType())]),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("i", Id("I"), None),
-                    Assign(Id("i"), NilLiteral())
-                ])
-            )
-        ])
+        input = Program(
+            [
+                InterfaceType("I", [Prototype("greet", [], VoidType())]),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block([VarDecl("i", Id("I"), None), Assign(Id("i"), NilLiteral())]),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 491))
 
@@ -2188,19 +2207,27 @@ class CheckSuite(unittest.TestCase):
             }
         }
         """
-        input = Program([
-            StructType("A", [], []),
-            MethodDecl("a", Id("A"),
-                FuncDecl("hello", [], VoidType(), Block([Return(None)]))),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("x", Id("A"), None),
-                    Block([
-                        MethCall(Id("x"), "hello", [])
-                    ])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                StructType("A", [], []),
+                MethodDecl(
+                    "a",
+                    Id("A"),
+                    FuncDecl("hello", [], VoidType(), Block([Return(None)])),
+                ),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("x", Id("A"), None),
+                            Block([MethCall(Id("x"), "hello", [])]),
+                        ]
+                    ),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 492))
 
@@ -2215,29 +2242,38 @@ class CheckSuite(unittest.TestCase):
             }
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("x", IntType(), None),
-                    ForStep(
-                        Assign(Id("x"), IntLiteral(0)),
-                        BinaryOp("<", Id("x"), IntLiteral(10)),
-                        Assign(Id("x"), BinaryOp("+", Id("x"), IntLiteral(1))),
-                        Block([
-                            If(
-                                BinaryOp("==",
-                                    BinaryOp("%", Id("x"), IntLiteral(2)),
-                                    IntLiteral(0)),
-                                Block([
-                                    VarDecl("x", StringType(), None)
-                                ]),
-                                None
-                            )
-                        ])
-                    )
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("x", IntType(), None),
+                            ForStep(
+                                Assign(Id("x"), IntLiteral(0)),
+                                BinaryOp("<", Id("x"), IntLiteral(10)),
+                                Assign(Id("x"), BinaryOp("+", Id("x"), IntLiteral(1))),
+                                Block(
+                                    [
+                                        If(
+                                            BinaryOp(
+                                                "==",
+                                                BinaryOp("%", Id("x"), IntLiteral(2)),
+                                                IntLiteral(0),
+                                            ),
+                                            Block([VarDecl("x", StringType(), None)]),
+                                            None,
+                                        )
+                                    ]
+                                ),
+                            ),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 493))
 
@@ -2257,20 +2293,30 @@ class CheckSuite(unittest.TestCase):
             i.ping();  // ✅ interface method call
         }
         """
-        input = Program([
-            InterfaceType("I", [Prototype("ping", [], VoidType())]),
-            StructType("S", [], []),
-            MethodDecl("s", Id("S"),
-                FuncDecl("ping", [], VoidType(), Block([Return(None)]))),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("i", Id("I"), None),
-                    VarDecl("s", Id("S"), None),
-                    Assign(Id("i"), Id("s")),
-                    MethCall(Id("i"), "ping", [])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                InterfaceType("I", [Prototype("ping", [], VoidType())]),
+                StructType("S", [], []),
+                MethodDecl(
+                    "s",
+                    Id("S"),
+                    FuncDecl("ping", [], VoidType(), Block([Return(None)])),
+                ),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("i", Id("I"), None),
+                            VarDecl("s", Id("S"), None),
+                            Assign(Id("i"), Id("s")),
+                            MethCall(Id("i"), "ping", []),
+                        ]
+                    ),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 494))
 
@@ -2284,21 +2330,30 @@ class CheckSuite(unittest.TestCase):
             var result = add(3, 4);
         }
         """
-        input = Program([
-            FuncDecl("add",
-                [ParamDecl("a", IntType()), ParamDecl("b", IntType())],
-                IntType(),
-                Block([
-                    Return(BinaryOp("+", Id("a"), Id("b")))
-                ])
-            ),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("result", None,
-                        FuncCall("add", [IntLiteral(3), IntLiteral(4)]))
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "add",
+                    [ParamDecl("a", IntType()), ParamDecl("b", IntType())],
+                    IntType(),
+                    Block([Return(BinaryOp("+", Id("a"), Id("b")))]),
+                ),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl(
+                                "result",
+                                None,
+                                FuncCall("add", [IntLiteral(3), IntLiteral(4)]),
+                            )
+                        ]
+                    ),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 496))
 
@@ -2309,16 +2364,22 @@ class CheckSuite(unittest.TestCase):
             var result = a && b;
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("a", BoolType(), None),
-                    VarDecl("b", BoolType(), None),
-                    VarDecl("result", None,
-                        BinaryOp("&&", Id("a"), Id("b")))
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("a", BoolType(), None),
+                            VarDecl("b", BoolType(), None),
+                            VarDecl("result", None, BinaryOp("&&", Id("a"), Id("b"))),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 497))
 
@@ -2330,16 +2391,22 @@ class CheckSuite(unittest.TestCase):
             var result = a < b;
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("a", None, StringLiteral("apple")),
-                    VarDecl("b", None, StringLiteral("banana")),
-                    VarDecl("result", None,
-                        BinaryOp("<", Id("a"), Id("b")))
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("a", None, StringLiteral("apple")),
+                            VarDecl("b", None, StringLiteral("banana")),
+                            VarDecl("result", None, BinaryOp("<", Id("a"), Id("b"))),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 498))
 
@@ -2351,22 +2418,35 @@ class CheckSuite(unittest.TestCase):
             sum([3]int{1, 2, 3});
         }
         """
-        input = Program([
-            FuncDecl("sum", [ParamDecl("arr",
-                ArrayType([IntLiteral(3)], IntType()))],
-                VoidType(),
-                Block([Return(None)])
-            ),
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    FuncCall("sum", [
-                        ArrayLiteral([IntLiteral(3)], IntType(), [
-                            IntLiteral(1), IntLiteral(2), IntLiteral(3)
-                        ])
-                    ])
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "sum",
+                    [ParamDecl("arr", ArrayType([IntLiteral(3)], IntType()))],
+                    VoidType(),
+                    Block([Return(None)]),
+                ),
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            FuncCall(
+                                "sum",
+                                [
+                                    ArrayLiteral(
+                                        [IntLiteral(3)],
+                                        IntType(),
+                                        [IntLiteral(1), IntLiteral(2), IntLiteral(3)],
+                                    )
+                                ],
+                            )
+                        ]
+                    ),
+                ),
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 499))
 
@@ -2379,19 +2459,26 @@ class CheckSuite(unittest.TestCase):
             }
         }
         """
-        input = Program([
-            FuncDecl("main", [], VoidType(),
-                Block([
-                    VarDecl("a", BoolType(), None),
-                    VarDecl("b", BoolType(), None),
-                    If(
-                        BinaryOp("||", Id("a"), Id("b")),
-                        Block([Return(None)]),
-                        None
-                    )
-                ])
-            )
-        ])
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("a", BoolType(), None),
+                            VarDecl("b", BoolType(), None),
+                            If(
+                                BinaryOp("||", Id("a"), Id("b")),
+                                Block([Return(None)]),
+                                None,
+                            ),
+                        ]
+                    ),
+                )
+            ]
+        )
         expect = ""
         self.assertTrue(TestChecker.test(input, expect, 500))
 
@@ -2401,23 +2488,19 @@ class CheckSuite(unittest.TestCase):
         """
         var a int = a;
         """
-        input = Program(
-            [VarDecl("a", IntType(), Id("a"))]
-        )
+        input = Program([VarDecl("a", IntType(), Id("a"))])
         expect = "Undeclared Identifier: a\n"
         self.assertTrue(TestChecker.test(input, expect, 501))
-        
+
     def test_502(self):
         """
         Same name with built-in function
         var getInt int;
         """
-        input = Program(
-            [VarDecl("getInt", IntType(), None)]
-        )
+        input = Program([VarDecl("getInt", IntType(), None)])
         expect = "Redeclared Variable: getInt\n"
         self.assertTrue(TestChecker.test(input, expect, 502))
-        
+
     def test_503(self):
         input = """func main() { 
             var data [10]string; for _, item := range data {
@@ -2425,7 +2508,7 @@ class CheckSuite(unittest.TestCase):
               """
         expect = "Undeclared Identifier: item\n"
         self.assertTrue(TestChecker.test(input, expect, 503))
-        
+
     def test_504(self):
         """
         func main() {
@@ -2437,26 +2520,469 @@ class CheckSuite(unittest.TestCase):
         }
         // ❌ s is string, but array elements are int
         """
+        input = Program(
+            [
+                FuncDecl(
+                    "main",
+                    [],
+                    VoidType(),
+                    Block(
+                        [
+                            VarDecl("i", IntType(), None),
+                            VarDecl("s", StringType(), None),
+                            ForEach(
+                                Id("i"),
+                                Id("s"),
+                                ArrayLiteral(
+                                    [IntLiteral(2)],
+                                    IntType(),
+                                    [IntLiteral(1), IntLiteral(2)],
+                                ),
+                                Block([Return(None)]),
+                            ),
+                        ]
+                    ),
+                )
+            ]
+        )
+        expect = "Type Mismatch: ForEach(Id(i),Id(s),ArrayLiteral([IntLiteral(2)],IntType,[IntLiteral(1),IntLiteral(2)]),Block([Return()]))\n"
+        self.assertTrue(TestChecker.test(input, expect, 504))
+
+    def test_505(self):
+        """
+        const a = 4;
+        var b = [a] int {3}
+        Normal case
+        """
+        input = Program(
+            [
+                ConstDecl("a", IntType(), IntLiteral(4)),
+                VarDecl("b", None, ArrayLiteral([IntLiteral(3)], IntType(), [])),
+            ]
+        )
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 505))
+
+    # ! ===================== Declaration Aspect ===================== !
+    # * ============== Variable Declaration ============== *
+    
+    def test_506(self):
+        """
+        var x int;
+
+        func main() {
+            var x string;  // ✅ shadows global
+        }
+        """
         input = Program([
-            FuncDecl(
-                "main", [], VoidType(),
+            VarDecl("x", IntType(), None),
+            FuncDecl("main", [], VoidType(),
                 Block([
-                    VarDecl("i", IntType(), None),
-                    VarDecl("s", StringType(), None),
-                    ForEach(
-                        Id("i"),
-                        Id("s"),
-                        ArrayLiteral(
-                            [IntLiteral(2)],
-                            IntType(),
-                            [IntLiteral(1), IntLiteral(2)]
-                        ),
-                        Block([Return(None)])
-                    )
+                    VarDecl("x", StringType(), None)
                 ])
             )
         ])
-        expect = "Type Mismatch: ForEach(Id(i),Id(s),ArrayLiteral([IntLiteral(2)],IntType,[IntLiteral(1),IntLiteral(2)]),Block([Return()]))\n"
-        self.assertTrue(TestChecker.test(input, expect, 504))
-        
-        
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 506))
+
+
+    def test_507(self):
+        """
+        func main(x int) {
+            var x float;  // ✅ shadows parameter
+        }
+        """
+        input = Program([
+            FuncDecl("main",
+                [ParamDecl("x", IntType())],
+                VoidType(),
+                Block([
+                    VarDecl("x", FloatType(), None)
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 507))
+
+    def test_508(self):
+        """
+        func main() {
+            var a int = 10;
+        }
+        """
+        input = Program([
+            FuncDecl("main", [], VoidType(),
+                Block([
+                    VarDecl("a", IntType(), IntLiteral(10))
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 508))
+
+    def test_509(self):
+        """
+        func main() {
+            var s = "MiniGo";  // ✅ type inferred as string
+        }
+        """
+        input = Program([
+            FuncDecl("main", [], VoidType(),
+                Block([
+                    VarDecl("s", None, StringLiteral("MiniGo"))
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 509))
+
+    def test_510(self):
+        """
+        func main() {
+            var flag bool;
+        }
+        """
+        input = Program([
+            FuncDecl("main", [], VoidType(),
+                Block([
+                    VarDecl("flag", BoolType(), None)
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 510))
+
+    # * ============== Constant Declaration ============== *
+    # NOTE: No tests because the above tests already cover the constant declaration aspect
+    
+    # * ============== Function Declaration ============== *
+    def test_511(self):
+        """
+        func getInt() int {
+            return 1;
+        }
+        // ❌ getInt is built-in
+        """
+        input = Program([
+            FuncDecl("getInt", [], IntType(),
+                Block([Return(IntLiteral(1))])
+            )
+        ])
+        expect = "Redeclared Function: getInt\n"
+        self.assertTrue(TestChecker.test(input, expect, 511))
+
+    def test_512(self):
+        """
+        func add(a int, b int) int {
+            return a + b;
+        }
+        """
+        input = Program([
+            FuncDecl("add", [
+                ParamDecl("a", IntType()),
+                ParamDecl("b", IntType())
+            ], IntType(),
+                Block([
+                    Return(BinaryOp("+", Id("a"), Id("b")))
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 512))
+
+    def test_513(self):
+        """
+        func greet() {
+            return;
+        }
+        """
+        input = Program([
+            FuncDecl("greet", [], VoidType(),
+                Block([Return(None)])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 513))
+
+    def test_514(self):
+        """
+        func foo(a int, a float) {}  // ❌ duplicate parameter name
+        """
+        input = Program([
+            FuncDecl("foo", [
+                ParamDecl("a", IntType()),
+                ParamDecl("a", FloatType())
+            ], VoidType(),
+                Block([Return(None)])
+            )
+        ])
+        expect = "Redeclared Parameter: a\n"
+        self.assertTrue(TestChecker.test(input, expect, 514))
+
+    def test_515(self):
+        """
+        func foo(a int) {
+            var a float;  // ✅ shadowing is OK
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [ParamDecl("a", IntType())], VoidType(),
+                Block([
+                    VarDecl("a", FloatType(), None)
+                ])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 515))
+
+    def test_516(self):
+        """
+        type A struct {}
+        func (a A) hello() {}
+        func (b A) hello() {}  // ❌ redeclared method
+        """
+        input = Program([
+            StructType("A", [], []),
+            MethodDecl("a", Id("A"),
+                FuncDecl("hello", [], VoidType(), Block([Return(None)]))
+            ),
+            MethodDecl("b", Id("A"),
+                FuncDecl("hello", [], VoidType(), Block([Return(None)]))
+            )
+        ])
+        expect = "Redeclared Method: hello\n"
+        self.assertTrue(TestChecker.test(input, expect, 516))
+
+    def test_517(self):
+        """
+        type A struct {}
+        func (a A) compute(x int) int {
+            var x = 10;  // ✅ shadowing parameter is OK
+            return x;
+        }
+        """
+        input = Program([
+            StructType("A", [], []),
+            MethodDecl("a", Id("A"),
+                FuncDecl("compute", [ParamDecl("x", IntType())], IntType(),
+                    Block([
+                        VarDecl("x", IntType(), IntLiteral(10)),
+                        Return(Id("x"))
+                    ])
+                )
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 517))
+
+    # * ============== Function Call ============== *
+
+    def test_518(self):
+        """
+        func foo() {}
+
+        func main() {
+            foo();  // ✅ valid function call as a statement
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([FuncCall("foo", [])])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 518))
+
+    def test_519(self):
+        """
+        func main() {
+            getInt();  // ✅ calling built-in function
+        }
+        """
+        input = Program([
+            FuncDecl("main", [], VoidType(),
+                Block([FuncCall("getInt", [])])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(getInt,[])\n"
+        self.assertTrue(TestChecker.test(input, expect, 519))
+
+    def test_520(self):
+        """
+        func add(a int, b int) int {
+            return a + b;
+        }
+
+        func main() {
+            var result = add(3, 4);  // ✅ function call as an expression
+        }
+        """
+        input = Program([
+            FuncDecl("add", [
+                ParamDecl("a", IntType()),
+                ParamDecl("b", IntType())
+            ], IntType(),
+                Block([
+                    Return(BinaryOp("+", Id("a"), Id("b")))
+                ])
+            ),
+            FuncDecl("main", [], VoidType(),
+                Block([VarDecl("result", None, FuncCall("add", [IntLiteral(3), IntLiteral(4)]))])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 520))
+
+    def test_521(self):
+        """
+        func add(a int, b int) int {
+            return a + b;
+        }
+
+        func main() {
+            var result = add(3, "hello");  // ❌ mismatch, second param should be int
+        }
+        """
+        input = Program([
+            FuncDecl("add", [ParamDecl("a", IntType()), ParamDecl("b", IntType())], IntType(),
+                Block([Return(BinaryOp("+", Id("a"), Id("b")))])
+            ),
+            FuncDecl("main", [], VoidType(),
+                Block([VarDecl("result", None, FuncCall("add", [IntLiteral(3), StringLiteral("hello")]))])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(add,[IntLiteral(3),StringLiteral(hello)])\n"
+        self.assertTrue(TestChecker.test(input, expect, 521))
+
+    def test_522(self):
+        """
+        func foo() {}
+
+        func main() {
+            var x = foo();  // ❌ function call should be a statement, not an expression here
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([VarDecl("x", None, FuncCall("foo", []))])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(foo,[])\n"
+        self.assertTrue(TestChecker.test(input, expect, 522))
+
+    def test_523(self):
+        """
+        func foo() {}
+
+        func main() {
+            const x = foo();  // ❌ function call should be treated as statement in const declaration
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([ConstDecl("x", None, FuncCall("foo", []))])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(foo,[])\n"
+        self.assertTrue(TestChecker.test(input, expect, 523))
+
+    def test_524(self):
+        """
+        func foo(a int) {}
+
+        func main() {
+            foo(foo(3));  // ❌ function call in function parameter should not be allowed
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [ParamDecl("a", IntType())], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([FuncCall("foo", [FuncCall("foo", [IntLiteral(3)])])])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(foo,[IntLiteral(3)])\n"
+        self.assertTrue(TestChecker.test(input, expect, 524))
+
+    def test_525(self):
+        """
+        func foo() {}
+
+        func main() {
+            if foo() {  // ❌ function call in conditional expression not allowed
+                return;
+            }
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([If(FuncCall("foo", []), Block([Return(None)]), None)])
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(foo,[])\n"
+        self.assertTrue(TestChecker.test(input, expect, 525))
+
+    def test_526(self):
+        """
+        func foo() {}
+
+        func main() {
+            var result = foo() + 1;  // ❌ function call in binary operation not allowed
+        }
+        """
+        input = Program([
+            FuncDecl("foo", [], VoidType(), Block([Return(None)])),
+            FuncDecl("main", [], VoidType(),
+                Block([VarDecl("result", None, BinaryOp("+", FuncCall("foo", []), IntLiteral(1)))]),
+            )
+        ])
+        expect = "Type Mismatch: FuncCall(foo,[])\n"
+        self.assertTrue(TestChecker.test(input, expect, 526))
+
+    def test_527(self):
+        """
+        func add(a int, b int) int {
+            return a + b;
+        }
+
+        func main() {
+            var result = add(3, 4);  // ✅ valid function call as an expression
+        }
+        """
+        input = Program([
+            FuncDecl("add", [ParamDecl("a", IntType()), ParamDecl("b", IntType())], IntType(),
+                Block([Return(BinaryOp("+", Id("a"), Id("b")))])
+            ),
+            FuncDecl("main", [], VoidType(),
+                Block([VarDecl("result", None, FuncCall("add", [IntLiteral(3), IntLiteral(4)]))])
+            )
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 527))
+
+
+    # ! ===================== Advance 2 ===================== !
+    def test_528(self):
+        """
+        var a [5]int = [4]int{1, 2, 3, 4};  // ❌ array size mismatch
+        """
+        input = Program([
+            VarDecl("a", ArrayType([IntLiteral(5)], IntType()),
+                ArrayLiteral([IntLiteral(4)], IntType(), [IntLiteral(1), IntLiteral(2), IntLiteral(3), IntLiteral(4)]))
+        ])
+        expect = "Type Mismatch: VarDecl(a,ArrayType(IntType,[IntLiteral(5)]),ArrayLiteral([IntLiteral(4)],IntType,[IntLiteral(1),IntLiteral(2),IntLiteral(3),IntLiteral(4)]))\n"
+        self.assertTrue(TestChecker.test(input, expect, 528))
+
+    def test_529(self):
+        """
+        var a[5] float = [5]float{1.0, 2.0, 3.0};  // ✅ valid array initialization
+        """
+        input = Program([
+            VarDecl("a", ArrayType([IntLiteral(5)], FloatType()),
+                ArrayLiteral([IntLiteral(5)], FloatType(), [FloatLiteral(1.0), FloatLiteral(2.0), FloatLiteral(3.0)]))
+        ])
+        expect = ""
+        self.assertTrue(TestChecker.test(input, expect, 529))
