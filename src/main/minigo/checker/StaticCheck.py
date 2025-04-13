@@ -117,8 +117,9 @@ class StaticChecker(BaseVisitor, Utils):
         if isinstance(lhs, StructType) and isinstance(rhs, StructType):
             return lhs.name == rhs.name
         return type(lhs) == type(rhs)
-
-    def visitField(self, field: Tuple[str, Type], c: List[List[Symbol]]):
+    
+    def visitField(self, field, c: List[List[Symbol]]):
+        # Field is a tuple (name, type)
         logging.debug("=" * 40)
         logging.debug(f"Visiting Field: {field[0]}")
 
